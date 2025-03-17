@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "ESNext", // Use ESNext module system (for "type": "module")
+    "target": "ESNext", // Compile to the latest ECMAScript version
+    "moduleResolution": "node", // Resolve modules using Node.js style
+    "esModuleInterop": true, // Enables interop between ES modules and CommonJS
+    "allowSyntheticDefaultImports": true, // Allows default imports even if no default export exists
+    "strict": true, // Enables strict type-checking
+    "skipLibCheck": true, // Skip type-checking declaration files (faster builds)
+    "outDir": "./dist", // Output directory for compiled files
+    "rootDir": "./src", // Root directory for source files
+    "baseUrl": "./",
+    "paths": {
+      "*": ["node_modules/*"]
+    },
+    "noEmit": false, // Allows TypeScript to emit compiled files
+    "resolveJsonModule": true, // Enables importing JSON files
+    "experimentalDecorators": true, // Enables support for decorators (useful for Mongoose/TypeORM)
+    "emitDecoratorMetadata": true // Required for some ORM libraries
+  },
+  "include": ["src/**/*"]
+}

@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon server.js"
+    "start": "node dist/server.js",
+    "dev": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\"}' ts-node src/server.ts",
+    "devnode": "nodemon --exec ts-node src/server.ts",
+    "build": "tsc"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
@@ -23,6 +23,12 @@
     "twilio": "^5.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.0",
+   "@types/mongoose": "^7.6.3",
+    "@types/node": "^22.13.10",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
   }
 }
