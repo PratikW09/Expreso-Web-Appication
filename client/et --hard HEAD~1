@@ -1,0 +1,29 @@
+[33mcommit 078ec688751ef2757ac6617a41e01c0547e3cf0d[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: Pratik09W <walalepratik09@gmail.com>
+Date:   Mon Jul 8 20:17:40 2024 +0530
+
+    Integrated Redux Toolkit for login and updated login component
+
+[33mcommit 7af25e5ce449193ccd7b38f8c345974ce4014632[m
+Author: Pratik09W <walalepratik09@gmail.com>
+Date:   Fri Jun 21 19:41:05 2024 +0530
+
+    use redux tool kits
+
+[33mcommit 4796d62e9bfe0d603812b54f99fa060e3e1c114c[m
+Author: Pratik09W <walalepratik09@gmail.com>
+Date:   Fri Jun 21 19:37:49 2024 +0530
+
+    use redux tool kit
+
+[33mcommit 77a8e127144c489c12da7784d5c137202d48b9dd[m
+Author: Pratik09W <walalepratik09@gmail.com>
+Date:   Fri Jun 14 22:45:23 2024 +0530
+
+    friend request feature aplliy
+
+[33mcommit 5e39636c54438391c002c5434cbd7f872d710c31[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Pratik09W <walalepratik09@gmail.com>
+Date:   Thu Jun 6 15:41:51 2024 +0530
+
+    inital commit frontend
