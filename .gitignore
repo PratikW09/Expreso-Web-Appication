@@ -4,6 +4,7 @@ appback/node_modules/
 client/node_modules/
 
 # Environment files
+*.env
 backend/.env
 appback/.env
 client/.env
