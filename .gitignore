@@ -4,7 +4,9 @@ appback/node_modules/
 client/node_modules/
 
 # Environment files
-*.env
+backend/.env
+appback/.env
+client/.env
 *.env.local
 *.env.development
 *.env.production
@@ -36,7 +38,7 @@ build/
 tmp/
 temp/
 
-# Debugging files
+# Debugging filesgit 
 coverage/
 *.pid
 *.seed
