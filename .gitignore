@@ -1,0 +1,63 @@
+# Node.js dependencies (for backend and appbackend)
+backend/
+
+backend/node_modules/
+appback/node_modules/
+client/node_modules/
+
+# Environment files
+*.env
+backend/.env
+appback/.env
+client/.env
+*.env.local
+*.env.development
+*.env.production
+*.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build files (if using TypeScript or Next.js in the client)
+dist/
+build/
+.out/
+.next/
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Cache and temp files
+.cache/
+tmp/
+temp/
+
+# Debugging filesgit 
+coverage/
+*.pid
+*.seed
+*.log
+
+# Git ignores package-lock & yarn.lock if you're using only one package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Prevent uploads of local uploads or storage files
+uploads/
+public/uploads/
+
+# If using Prisma ORM
+prisma/migrations/
+
+# If using Docker
+docker-compose.override.yml

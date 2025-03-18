@@ -1,8 +1,8 @@
 import Blog from '../Models/blogmodels.js';
-
-// controllers/likeController.js
 import Like from '../Models/likemodels.js';
+import { createBlogService } from '../Services/blogService.js';
 import { decodeToken } from '../Utils/authutils.js';
+import { Response,errorResponse } from '../Utils/responseHandler.js';
 
 
 
@@ -62,42 +62,70 @@ const likeBlog = async (req, res) => {
     }
   };
 
-// Controller function to create a new blog post
- const createBlog = async (req, res) => {
-    const { title, content,author,tags } = req.body;
-    // console.log(req.body);
-    // console.log(title, content)
-  
-    // Validate the input
-    if (!title || !content) {
-      return res.status(400).json({ message: 'Please fill in all fields' });
-    }
-  
-    try {
-      // Retrieve the user ID from the cookies
-    //   console.log(req.cookies)
-      const userId = await decodeToken(req.cookies.accessToken);
 
-      // console.log("userId from createBlog contorller ->",userId)
+export const createBlog = async (req, res,next) => {
+  const { title, content, author, tags } = req.body;
+
+  const accessToken = req.cookies.accessToken || req.headers.authorization?.split(' ')[1];
   
-      // Create a new blog post
-      const newBlog = new Blog({
-        user_id: userId,
-        title,
-        content,
-        author,
-        tags
-      });
-  
-      // Save the blog post to the database
-      await newBlog.save();
-  
-      res.status(201).json({ message: 'Blog post created successfully', blog: newBlog });
-    } catch (error) {
-      // console.log(error)
-      res.status(500).json({ message: 'Server error', error: error.message });
+    // Check if token is provided
+    if (!accessToken) {
+      return errorResponse(res, 400, 'Token not found from create blog post controller.');
     }
-  };
+
+  if (!title || !content) {
+    return errorResponse(res, 400, 'Please fill in all fields');
+  }
+
+
+  try {
+    const userId = await decodeToken(accessToken);
+    const newBlog = await createBlogService({ userId, title, content, author, tags });
+
+     return Response(res,201, 'Blog post created successfully', {
+          blog: newBlog
+        });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// // Controller function to create a new blog post
+//  const createBlog = async (req, res) => {
+//     const { title, content,author,tags } = req.body;
+//     // console.log(req.body);
+//     // console.log(title, content)
+  
+//     // Validate the input
+//     if (!title || !content) {
+//       return res.status(400).json({ message: 'Please fill in all fields' });
+//     }
+  
+//     try {
+//       // Retrieve the user ID from the cookies
+//     //   console.log(req.cookies)
+//       const userId = await decodeToken(req.cookies.accessToken);
+
+//       // console.log("userId from createBlog contorller ->",userId)
+  
+//       // Create a new blog post
+//       const newBlog = new Blog({
+//         user_id: userId,
+//         title,
+//         content,
+//         author,
+//         tags
+//       });
+  
+//       // Save the blog post to the database
+//       await newBlog.save();
+  
+//       res.status(201).json({ message: 'Blog post created successfully', blog: newBlog });
+//     } catch (error) {
+//       // console.log(error)
+//       res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+//   };
 
 
 
@@ -246,6 +274,6 @@ const likeBlog = async (req, res) => {
     }
   };
   
-  export {getAllLikes,likeBlog,deleteBlog,updateBlog,createBlog,getUserPosts,getAllPosts,getPostById
+  export {getAllLikes,likeBlog,deleteBlog,updateBlog,getUserPosts,getAllPosts,getPostById
     
 };

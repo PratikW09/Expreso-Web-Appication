@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './Routes/authRoutes.js';
 import blogRoutes from './Routes/blogRoutes.js';
+import aiRoutes from './Routes/aiRoutes.js';
 import errorHandler from './Middleware/errorHandler.js';
 
 dotenv.config();
@@ -23,6 +24,7 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.use(errorHandler);
 
