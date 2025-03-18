@@ -1,53 +1,73 @@
 import User from '../Models/usermodels.js';
-import { hashPassword, generateTokens, decodeToken } from '../Utils/authutils.js';
-import bcrypt from 'bcrypt';
-// import jwt from 'jsonwebtoken';
+import {  decodeToken } from '../Utils/authutils.js';
+import { registerUserService,loginUserService,logoutUserService } from '../Services/authService.js';
+import { Response, errorResponse } from '../Utils/responseHandler.js';
 
-export const registerUser = async (req, res) => {
-  const { username, email, password, fullName, contact } = req.body;
-  // console.log(username, email, password, fullName, contact)
 
-  // Validate the input
-  if (!username || !email || !password || !fullName || !contact) {
-    return res.status(400).json({ message: 'Please fill in all fields' });
-  }
-
+export const registerUser = async (req, res, next) => {
   try {
-    // Check if the email or username already exists
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email or username already exists' });
+    const userData = req.body;
+
+    // Validate Input
+    if (!userData.username || !userData.email || !userData.password || !userData.fullName || !userData.contact) {
+      return errorResponse(res, 400, 'Please fill in all fields');
     }
 
-    // Hash the password
-    const hashedPassword = await hashPassword(password);
+    const newUser = await registerUserService(userData);
 
-    // Create a new user
-    const newUser = new User({ username, email, password: hashedPassword, fullName, contact });
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await generateTokens(newUser);
+    res
+      .cookie('accessToken', newUser.accessToken, options)
+      .cookie('refreshToken', newUser.refreshToken, options);
 
-    newUser.refreshToken = refreshToken;
-    // Save the user to the database
-    await newUser.save();
-
-    const option ={
-        httpOnly:true,
-        secure:true
-    }
-
-    // console.log(newUser)
-
-    res.status(201).cookie("accessToken",accessToken,option)
-    .cookie("refreshToken",refreshToken,option).json({ message: 'User registered successfully',user:newUser
-      , accessToken, refreshToken });
+    return Response(res,201, 'User registered successfully', {
+      userId: newUser.userId,
+      username: newUser.username,
+      email: newUser.email,
+    });
   } catch (error) {
-    console.log(error,error.message)
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
+export const loginUser = async(req,res,next)=>{
+  try {
+    
+    const { emailOrUsername, password } = req.body;
+    if (!emailOrUsername || !password) {
+      return errorResponse(res, 400, 'Please fill in all fields');
+    }
+
+    const { user, accessToken, refreshToken } = await loginUserService(emailOrUsername, password);
+
+    const options = {
+      httpOnly: true,
+      secure: true, // Use secure cookies in production (HTTPS)
+      sameSite: 'strict', // Prevent CSRF attacks
+    };
+
+    res
+      .cookie('accessToken', accessToken, options)
+      .cookie('refreshToken', refreshToken, options);
+
+    // Send success response
+    return Response(res,200, 'Login successful', {
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export const getUserDetails = async(req, res) => {
   try {
@@ -75,76 +95,32 @@ export const getUserDetails = async(req, res) => {
 
 
 
-export const loginUser = async (req, res) => {
-  const { emailOrUsername, password } = req.body;
-  // console.log( emailOrUsername, password)
+export const logoutUser = async (req, res, next) => {
+  try {
+  
+    const accessToken = req.cookies.accessToken || req.headers.authorization?.split(' ')[1];
 
-  // Validate the input
-  if (!emailOrUsername || !password) {
-    return res.status(400).json({ message: 'Please fill in all fields' });
+  // Check if token is provided
+  if (!accessToken) {
+    return errorResponse(res, 400, 'Token not found.');
   }
 
-  try {
-    // Check if the user exists by email or username
-    const user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: emailOrUsername }] });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email/username or password' });
-    }
+    const id = await decodeToken(accessToken);
+    await logoutUserService(id);
 
-    // Validate the password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email/username or password' });
-    }
+    const options = {
+      httpOnly: true,
+      secure: true, 
+      sameSite: 'strict',
+    };
 
-    // Generate new access and refresh tokens
-    // console.log(user)
-    const { accessToken, refreshToken } = generateTokens(user);
-    user.refreshToken = refreshToken;
-    await user.save();
-    const option ={
-        httpOnly:true,
-        secure:true
-    }
-    // console.log(user);
+    res
+      .clearCookie('accessToken', options)
+      .clearCookie('refreshToken', options);
 
-    res.status(200).cookie("accessToken",accessToken,option)
-    .cookie("refreshToken",refreshToken,option).json({ message: 'Login successful',user, accessToken, refreshToken });
+    // Send success response
+    return Response(res,200, 'User logged out successfully');
   } catch (error) {
-    // console.log(error.message)
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
-
-
-
-
-
-
-export const logoutUser = async(req,res)=>{
-    // console.log(req.user);
-    await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $unset: {
-                refreshToken: 1 // this removes the field from document
-            }
-        },
-        {
-            new : true
-        }
-    )
-
-    const option ={
-        httpOnly:true,
-        secure:true
-    }
-
-    return res
-    .status(200)
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
-    .json(
-        200,{},"User Logout Successfully"
-    )
-}
