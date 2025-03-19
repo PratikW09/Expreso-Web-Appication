@@ -1,10 +1,12 @@
 import express from 'express';
 import { createBlog, updateBlog, deleteBlog, likeBlog, getUserPosts, getAllPosts, getAllLikes, getPostById } from '../Controllers/blogContorller.js';
 import { verifyJWT } from '../Middleware/authmiddleware.js';
+import upload from '../Middleware/mullterMiddleware.js';
 
 const router = express.Router();
 
-router.post('/create', verifyJWT, createBlog);
+
+router.post('/create', verifyJWT,upload.array('images', 5), createBlog);
 router.delete('/delete/:blogid', verifyJWT, deleteBlog);
 router.post('/like/:blogid', verifyJWT, likeBlog);
 router.get('/getUserPost', verifyJWT, getUserPosts);

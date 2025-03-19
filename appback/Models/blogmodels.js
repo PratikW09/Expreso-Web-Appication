@@ -24,6 +24,10 @@ const blogSchema = new Schema({
     type: [String], // Define tags as an array of strings
     default: [] // Default value is an empty array
   },
+  images: {
+    type: [String],
+    default: [],
+  },
   likesCount: {
     type: Number,
     default: 0

@@ -4,6 +4,8 @@ import { createBlogService } from '../Services/blogService.js';
 import { decodeToken } from '../Utils/authutils.js';
 import { Response,errorResponse } from '../Utils/responseHandler.js';
 
+import fs from 'fs';
+import { uploadOnCloudinary } from '../Utils/fileupload.js';
 
 
 
@@ -63,70 +65,67 @@ const likeBlog = async (req, res) => {
   };
 
 
-export const createBlog = async (req, res,next) => {
+  
+  
+ export const createBlog = async (req, res, next) => {
   const { title, content, author, tags } = req.body;
 
   const accessToken = req.cookies.accessToken || req.headers.authorization?.split(' ')[1];
-  
-    // Check if token is provided
-    if (!accessToken) {
-      return errorResponse(res, 400, 'Token not found from create blog post controller.');
-    }
 
-  if (!title || !content) {
-    return errorResponse(res, 400, 'Please fill in all fields');
+  // Check if token is provided
+  if (!accessToken) {
+    console.error('❌ No token found. Authorization failed.');
+    return errorResponse(res, 400, 'Token not found in create blog post controller.');
   }
 
+  // Basic validation for required fields
+  if (!title || !content) {
+    console.error('❌ Missing required fields.');
+    return errorResponse(res, 400, 'Please fill in all fields.');
+  }
 
   try {
+    // Decode token to get userId
     const userId = await decodeToken(accessToken);
-    const newBlog = await createBlogService({ userId, title, content, author, tags });
 
-     return Response(res,201, 'Blog post created successfully', {
-          blog: newBlog
-        });
+    // Upload images to Cloudinary if any
+    const imageUrls = [];
+    if (req.files && req.files.length > 0) {
+
+      for (const file of req.files) {
+        const localFilePath = file.path;
+
+        const uploadResult = await uploadOnCloudinary(localFilePath);
+
+        if (uploadResult) {
+          imageUrls.push(uploadResult.secure_url);
+        } else {
+          console.error(`⚠️ Upload failed for file: ${localFilePath}`);
+        }
+      }
+    } else {
+      console.log('ℹ️ No images provided for this blog post.');
+    }
+
+    // Create the new blog post with image URLs
+    const newBlog = await createBlogService({
+      userId,
+      title,
+      content,
+      author,
+      tags,
+      images: imageUrls, // Store uploaded image URLs in DB
+    });
+
+    // Return success response
+    return Response(res, 201, 'Blog post created successfully', {
+      blog: newBlog,
+    });
   } catch (error) {
+    console.error('❌ Error occurred while creating the blog:', error.message);
     next(error);
   }
 };
-
-// // Controller function to create a new blog post
-//  const createBlog = async (req, res) => {
-//     const { title, content,author,tags } = req.body;
-//     // console.log(req.body);
-//     // console.log(title, content)
-  
-//     // Validate the input
-//     if (!title || !content) {
-//       return res.status(400).json({ message: 'Please fill in all fields' });
-//     }
-  
-//     try {
-//       // Retrieve the user ID from the cookies
-//     //   console.log(req.cookies)
-//       const userId = await decodeToken(req.cookies.accessToken);
-
-//       // console.log("userId from createBlog contorller ->",userId)
-  
-//       // Create a new blog post
-//       const newBlog = new Blog({
-//         user_id: userId,
-//         title,
-//         content,
-//         author,
-//         tags
-//       });
-  
-//       // Save the blog post to the database
-//       await newBlog.save();
-  
-//       res.status(201).json({ message: 'Blog post created successfully', blog: newBlog });
-//     } catch (error) {
-//       // console.log(error)
-//       res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-//   };
-
 
 
   const updateBlog = async (req, res) => {
