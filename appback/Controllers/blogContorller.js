@@ -1,6 +1,6 @@
 import Blog from '../Models/blogmodels.js';
 import Like from '../Models/likemodels.js';
-import { createBlogService } from '../Services/blogService.js';
+import { createBlogService, updateBlogService } from '../Services/blogService.js';
 import { decodeToken } from '../Utils/authutils.js';
 import { Response,errorResponse } from '../Utils/responseHandler.js';
 
@@ -128,58 +128,23 @@ const likeBlog = async (req, res) => {
 };
 
 
-  const updateBlog = async (req, res) => {
-    const { title, content, tags, author } = req.body;
-    const blogId = req.params.blogid;
-  
-    // console.log(req.body);
-    // console.log(blogId);
-  
-    // Validate the input
-    if (!title || !content) {
-      return res.status(400).json({ message: 'Please fill in all fields' });
-    }
-  
-    try {
-      // Find the blog post by ID
-      const blog = await Blog.findById(blogId);
-      if (!blog) {
-        return res.status(404).json({ message: 'Blog post not found' });
-      }
-  
-      // console.log(blog);
-  
-      // Check if the requesting user is the owner of the blog post
-      const token = req.cookies.accessToken;
-      if (!token) {
-        return res.status(401).json({ message: 'No token provided, user is not logged in' });
-      }
-  
-      const userId = await decodeToken(token);
-      if (blog.user_id.toString() !== userId.toString()) {  // Ensure user IDs are compared correctly
-        return res.status(403).json({ message: 'You are not authorized to update this blog post' });
-      }
-  
-      // Update the blog post fields
-      blog.title = title;
-      blog.content = content;
-      if (tags) {
-        blog.tags = tags;
-      }
-      if (author) {
-        blog.author = author;
-      }
-  
-      // Save the updated blog post
-      await blog.save();
-      // console.log(blog);
-  
-      res.status(200).json({ message: 'Blog post updated successfully', blog });
-    } catch (error) {
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  };
-  
+export const updateBlog = async (req, res, next) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  try {
+    // Call the service to update the blog
+    const updatedBlog = await updateBlogService(id, updateData, req.files);
+
+    // Return success response
+    return Response(res, 200, 'Blog post updated successfully', {
+      blog: updatedBlog,
+    });
+  } catch (error) {
+    console.error('❌ Error while updating the blog:', error.message);
+    next(error);
+  }
+};
   
 
   const getPostById = async (req, res) => {
@@ -273,6 +238,6 @@ const likeBlog = async (req, res) => {
     }
   };
   
-  export {getAllLikes,likeBlog,deleteBlog,updateBlog,getUserPosts,getAllPosts,getPostById
+  export {getAllLikes,likeBlog,deleteBlog,getUserPosts,getAllPosts,getPostById
     
 };
