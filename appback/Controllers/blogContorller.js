@@ -145,7 +145,21 @@ export const updateBlog = async (req, res, next) => {
     next(error);
   }
 };
-  
+ 
+
+
+export const deleteBlog = async (req,res) => {
+  const {id} = req.params;
+
+  try {
+    const result = await deleteBlogService(id);
+
+    return Response(res,200,result)
+  } catch (error) {
+    console.error('❌ Error in deleteBlogController:', error.message)
+    res.status(500).json({error:error.message});
+  }
+}
 
   const getPostById = async (req, res) => {
     const blogId = req.params.blogid; // Assuming the blog ID is passed in the URL parameters
@@ -164,41 +178,7 @@ export const updateBlog = async (req, res, next) => {
     }
   };
   
-  const deleteBlog = async (req, res) => {
-    const blogId = req.params.blogid; // Assuming the blog ID is passed in the URL parameters
-    // console.log("Delete post", blogId);
   
-    try {
-      // Find the blog post by ID
-      const blog = await Blog.findById(blogId);
-      if (!blog) {
-        return res.status(404).json({ message: 'Blog post not found' });
-      }
-      // console.log("Blog found:", blog);
-  
-      const token = req.cookies.accessToken;
-      if (!token) {
-        return res.status(401).json({ message: 'No token provided, user is not logged in' });
-      }
-  
-      const userId = await decodeToken(token);
-      if (String(blog.user_id) !== String(userId)) {
-        // console.log("Unauthorized user");
-        return res.status(403).json({ message: 'You are not authorized to delete this blog post' });
-      }
-  
-      // Delete the blog post
-      // console.log("Deleting blog post");
-      await blog.deleteOne();
-      // console.log("Blog post deleted");
-  
-      res.status(200).json({ message: 'Blog post deleted successfully', blog });
-    } catch (error) {
-      console.error("Server error:", error);
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  };
-
 
   const getUserPosts = async (req, res) => {
     try {
@@ -238,6 +218,6 @@ export const updateBlog = async (req, res, next) => {
     }
   };
   
-  export {getAllLikes,likeBlog,deleteBlog,getUserPosts,getAllPosts,getPostById
+  export {getAllLikes,likeBlog,getUserPosts,getAllPosts,getPostById
     
 };

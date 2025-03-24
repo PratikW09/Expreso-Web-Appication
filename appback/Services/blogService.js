@@ -1,5 +1,6 @@
 import Blog from "../Models/blogmodels.js";
 import { deleteFromCloudinary, uploadOnCloudinary } from '../Utils/fileupload.js';
+import { errorResponse } from "../Utils/responseHandler.js";
 
 export const createBlogService = async ({ userId, title, content, author, tags, images }) => {
   const newBlog = new Blog({
@@ -86,6 +87,51 @@ export const updateBlogService = async (id, updateData, files) => {
     throw error;
   }
 };
+
+
+export const deleteBlogService = async (id) => {
+  try {
+    const blog = await Blog.findById(id);
+
+    if(!blog){
+      console.error('❌ Blog post not found.');
+      throw new Error('Blog post not found.');
+    }
+
+    if(blog.images && blog.images.length>0){
+      for(const url of blog.images){
+        const check = await deleteFromCloudinary(url);
+        if(check){
+          console.log('image is delted from cloudinary');
+        }
+      }
+    }
+
+    const deletedBlog = await Blog.findByIdAndDelete(id);
+
+    if(!deletedBlog){
+      throw new Error('blog deletion failed');
+    }
+
+    return {message:'Blog deleted Successfully'}
+  } catch (error) {
+    console.error('❌ Error in deleteBlogService:', error.message)
+    throw error;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Handle image upload and return URLs
 const handleImageUpload = async (files) => {

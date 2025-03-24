@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post('/create', verifyJWT,upload.array('images', 5), createBlog);
 router.patch('/update/:id', verifyJWT,upload.array('images', 5), updateBlog);
-router.delete('/delete/:blogid', verifyJWT, deleteBlog);
+router.delete('/delete/:id', verifyJWT, deleteBlog);
 router.post('/like/:blogid', verifyJWT, likeBlog);
 router.get('/getUserPost', verifyJWT, getUserPosts);
 router.get('/getAllLikes', verifyJWT, getAllLikes);

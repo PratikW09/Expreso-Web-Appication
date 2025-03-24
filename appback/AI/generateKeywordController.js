@@ -1,4 +1,4 @@
-import { getTextModel } from "../utils/geminiUtils.js";
+import { getTextModel } from "../Utils/geminiUtils.js";
 // import { processTextResponse } from "../Utils/responseProcessor.js";
 import {sanitizeInput,processTextResponse} from "../Utils/sanitizer.js";
 
