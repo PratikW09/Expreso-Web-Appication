@@ -28,6 +28,10 @@ const blogSchema = new Schema({
     type: [String],
     default: [],
   },
+  status:{
+    type:String,
+    default: 'pending_images'
+  },
   likesCount: {
     type: Number,
     default: 0

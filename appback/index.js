@@ -14,13 +14,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middlewares
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(cookieParser());
 app.use(express.json());
 
 
 // Connect to MongoDB
 connectDB();
+
+app.get('/health-check', (req, res) => {
+  res.status(200).json({ message: "The server is running fine...!" });
+});
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);

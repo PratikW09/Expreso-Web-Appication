@@ -1,11 +1,12 @@
 import Blog from '../Models/blogmodels.js';
 import Like from '../Models/likemodels.js';
-import { createBlogService, updateBlogService } from '../Services/blogService.js';
+import { createBlogService, updateBlogService,deleteBlogService } from '../Services/blogService.js';
 import { decodeToken } from '../Utils/authutils.js';
 import { Response,errorResponse } from '../Utils/responseHandler.js';
 
 import fs from 'fs';
 import { uploadOnCloudinary } from '../Utils/fileupload.js';
+import { handleImageUploadsV1 } from '../Utils/helperUploadImagesAsync.js';
 
 
 
@@ -65,59 +66,74 @@ const likeBlog = async (req, res) => {
   };
 
 
+  export const uploadImage = async (req, res, next) => {
+    try {
+      console.log('📥 Received an image upload request.');
   
+      // Check if a file was uploaded
+      if (!req.file) {
+        console.warn('⚠️ No image provided for upload.');
+        return res.status(400).json({ message: 'No image provided. Please upload an image.' });
+      }
+  
+      console.log('🔄 Processing image upload...');
+  
+      // Upload image to Cloudinary
+      const cloudinaryImageUrl = await handleImageUploadsV1(req.file);
+  
+      if (!cloudinaryImageUrl) {
+        console.error('❌ Image upload failed. No URL received from Cloudinary.');
+        return res.status(500).json({ message: 'Image upload failed. Please try again later.' });
+      }
+  
+      console.log('✅ Image uploaded successfully:', cloudinaryImageUrl);
+  
+      return Response(res, 200, 'Image uploaded successfully', {url: cloudinaryImageUrl})
+      
+      
+  
+    } catch (error) {
+      console.error('❌ Error occurred while uploading the image:', error);
+      next(error); // Pass error to Express error handler
+    }
+};
+
+
+  
+
   
  export const createBlog = async (req, res, next) => {
   const { title, content, author, tags } = req.body;
 
   const accessToken = req.cookies.accessToken || req.headers.authorization?.split(' ')[1];
 
-  // Check if token is provided
   if (!accessToken) {
-    console.error('❌ No token found. Authorization failed.');
     return errorResponse(res, 400, 'Token not found in create blog post controller.');
   }
 
-  // Basic validation for required fields
   if (!title || !content) {
-    console.error('❌ Missing required fields.');
     return errorResponse(res, 400, 'Please fill in all fields.');
   }
 
   try {
-    // Decode token to get userId
     const userId = await decodeToken(accessToken);
 
-    // Upload images to Cloudinary if any
-    const imageUrls = [];
-    if (req.files && req.files.length > 0) {
-
-      for (const file of req.files) {
-        const localFilePath = file.path;
-
-        const uploadResult = await uploadOnCloudinary(localFilePath);
-
-        if (uploadResult) {
-          imageUrls.push(uploadResult.secure_url);
-        } else {
-          console.error(`⚠️ Upload failed for file: ${localFilePath}`);
-        }
-      }
-    } else {
-      console.log('ℹ️ No images provided for this blog post.');
-    }
-
-    // Create the new blog post with image URLs
     const newBlog = await createBlogService({
       userId,
       title,
       content,
       author,
       tags,
-      images: imageUrls, // Store uploaded image URLs in DB
+      images: [], 
+      status:'pending_images'
     });
 
-    // Return success response
+    if (req.files && req.files.length > 0) {
+      handleImageUploads(req.files,newBlog._id, newBlog.userId); 
+    } else {
+      console.log('ℹ️ No images provided for this blog post.');
+    }
+
     return Response(res, 201, 'Blog post created successfully', {
       blog: newBlog,
     });
@@ -166,7 +182,7 @@ export const deleteBlog = async (req,res) => {
   
     try {
       // Find the blog post by ID
-      const blog = await Blog.findById(blogId);
+      const blog = await Blog.findById({_id:blogId});
       if (!blog) {
         return res.status(404).json({ message: 'Blog post not found' });
       }

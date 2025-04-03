@@ -22,7 +22,6 @@ export const registerUser = async (req, res, next) => {
 
     res
       .cookie('accessToken', newUser.accessToken, options)
-      .cookie('refreshToken', newUser.refreshToken, options);
 
     return Response(res,201, 'User registered successfully', {
       userId: newUser.userId,
@@ -52,7 +51,6 @@ export const loginUser = async(req,res,next)=>{
 
     res
       .cookie('accessToken', accessToken, options)
-      .cookie('refreshToken', refreshToken, options);
 
     // Send success response
     return Response(res,200, 'Login successful', {
@@ -61,8 +59,7 @@ export const loginUser = async(req,res,next)=>{
         username: user.username,
         email: user.email,
       },
-      accessToken,
-      refreshToken,
+      accessToken
     });
   } catch (error) {
     next(error);
